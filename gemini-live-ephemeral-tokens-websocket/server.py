@@ -8,6 +8,20 @@ import json
 import mimetypes
 import os
 import datetime
+import httpx
+
+# Disable SSL verification for httpx (used by google-genai) to fix proxy/cert issues
+_original_init = httpx.Client.__init__
+def _patched_init(self, *args, **kwargs):
+    kwargs['verify'] = False
+    _original_init(self, *args, **kwargs)
+httpx.Client.__init__ = _patched_init
+
+_original_async_init = httpx.AsyncClient.__init__
+def _patched_async_init(self, *args, **kwargs):
+    kwargs['verify'] = False
+    _original_async_init(self, *args, **kwargs)
+httpx.AsyncClient.__init__ = _patched_async_init
 
 from aiohttp import web
 from google import genai

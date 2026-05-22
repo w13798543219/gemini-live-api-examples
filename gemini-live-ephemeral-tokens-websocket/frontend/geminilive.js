@@ -165,8 +165,11 @@ class GeminiLiveAPI {
 
     this.activityHandling = "ACTIVITY_HANDLING_UNSPECIFIED";
 
-    this.serviceUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained?access_token=${this.token}`;
-    console.log("Service URL (v1alpha): ", this.serviceUrl);
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.host;
+    // Route through Nginx proxy to avoid GFW blocking
+    this.serviceUrl = `${wsProtocol}//${host}/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained?access_token=${this.token}`;
+    console.log("Proxied Service URL: ", this.serviceUrl);
 
     this.connected = false;
     this.webSocket = null;

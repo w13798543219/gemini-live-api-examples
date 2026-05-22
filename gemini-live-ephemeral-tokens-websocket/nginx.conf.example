@@ -1,0 +1,31 @@
+server {
+    listen 80;
+    # 如果你有域名，把下划线换成你的域名，比如 server_name test.com;
+    server_name _;
+
+    # 1. 把普通网页请求转发给后台跑着 server.py 的 Python 服务
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    # 2. WebSocket 任意门：把 /ws/ 打头的数据包通过香港机房直连 Google
+    location /ws/ {
+        proxy_pass https://generativelanguage.googleapis.com/ws/;
+        
+        # 必须的 WebSocket 协议头提升
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        
+        # 伪装来源告诉 Google 是正常的请求
+        proxy_set_header Host generativelanguage.googleapis.com;
+        proxy_ssl_server_name on;
+        
+        # 去掉连接断开的超时时间（对于语音流非常重要，否则很容易掉线）
+        proxy_read_timeout 3600;
+        proxy_send_timeout 3600;
+    }
+}
